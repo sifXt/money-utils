@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@sifxt/math-utils':
-        specifier: ^2.0.0
-        version: 2.0.0
+        specifier: ^2.0.1
+        version: 2.0.1
     devDependencies:
       '@types/jest':
         specifier: ^29.5.12
@@ -282,8 +282,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@sifxt/math-utils@2.0.0':
-    resolution: {integrity: sha512-JQRDAOpWluU1oS4BArVQkCYl/uuPeK7vTQGOxZgHGqMRgXCRMioOQA8ESRvZRMZTlGuTAbxcYiYz/Eol0FtbPg==}
+  '@sifxt/math-utils@2.0.1':
+    resolution: {integrity: sha512-qdLJ3OzCPFUxSZWh4kmpYXXRlyb3GRJUHJ8K1G42oz06eDi31GvfIQKaNCBdxrYN6KCo5ckLKg59p5s7dZ/IwA==}
     engines: {node: '>=14.0.0'}
 
   '@sinclair/typebox@0.27.8':
@@ -1560,7 +1560,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@sifxt/math-utils@2.0.0': {}
+  '@sifxt/math-utils@2.0.1': {}
 
   '@sinclair/typebox@0.27.8': {}
 

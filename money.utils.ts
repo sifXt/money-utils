@@ -40,7 +40,7 @@ import {
     abs as mathAbs,
     compare as mathCompare,
     sign as mathSign,
-    isValidNumber,
+    isValidNumber as mathIsValidNumber,
     isPositive as mathIsPositive,
     isNegative as mathIsNegative,
     isZero as mathIsZero,
@@ -114,6 +114,19 @@ export {
     isValidCurrency,
 };
 
+// Re-export precision constants for configuration
+export {
+    DEFAULT_PRECISION_ROUNDING_MODE,
+    DEFAULT_PRECISION_DECIMAL_PLACES,
+    PRECISION as MATH_PRECISION,
+};
+
+// Re-export rounding config
+export { DEFAULT_ROUNDING_CONFIG };
+
+// Re-export money precision thresholds
+export { MONEY_PRECISION };
+
 export type { RoundingAdjustment, RoundingConfig, CurrencyConfig };
 
 // Re-export precise functions (string-based, for exact arithmetic)
@@ -181,6 +194,138 @@ export {
     preciseDistribute as distribute,
     preciseAllocate as allocate,
 };
+
+// =============================================================================
+// NUMERIC HELPER FUNCTIONS (from math-utils)
+// =============================================================================
+
+/**
+ * Check if a value is a valid number (not NaN, not Infinity)
+ * 
+ * @example
+ * isValidNumber(123);        // true
+ * isValidNumber('123.45');   // true
+ * isValidNumber('abc');      // false
+ * isValidNumber(NaN);        // false
+ * isValidNumber(Infinity);   // false
+ */
+export function isValidNumber(value: unknown): boolean {
+    return mathIsValidNumber(value);
+}
+
+/**
+ * Check if a numeric value is positive (> 0)
+ * 
+ * @example
+ * isPositiveNumber(100);     // true
+ * isPositiveNumber(0);       // false
+ * isPositiveNumber(-50);     // false
+ */
+export function isPositiveNumber(value: number | string): boolean {
+    return mathIsPositive(safeToNumber(value, 0));
+}
+
+/**
+ * Check if a numeric value is negative (< 0)
+ * 
+ * @example
+ * isNegativeNumber(-50);     // true
+ * isNegativeNumber(0);       // false
+ * isNegativeNumber(100);     // false
+ */
+export function isNegativeNumber(value: number | string): boolean {
+    return mathIsNegative(safeToNumber(value, 0));
+}
+
+/**
+ * Check if a numeric value is an integer (no decimal part)
+ * 
+ * @example
+ * isIntegerAmount(100);      // true
+ * isIntegerAmount(100.00);   // true
+ * isIntegerAmount(100.50);   // false
+ */
+export function isIntegerAmount(value: number | string): boolean {
+    return mathIsInteger(safeToNumber(value, 0));
+}
+
+/**
+ * Get the absolute value of a number
+ * 
+ * @example
+ * absoluteValue(-100);       // 100
+ * absoluteValue(50);         // 50
+ */
+export function absoluteValue(value: number | string): number {
+    return mathAbs(safeToNumber(value, 0));
+}
+
+/**
+ * Get the sign of a number (-1, 0, or 1)
+ * 
+ * @example
+ * signOf(100);               // 1
+ * signOf(-50);               // -1
+ * signOf(0);                 // 0
+ */
+export function signOf(value: number | string): -1 | 0 | 1 {
+    return mathSign(safeToNumber(value, 0));
+}
+
+/**
+ * Compare two numeric values
+ * Returns: -1 if a < b, 0 if a === b, 1 if a > b
+ * 
+ * @example
+ * compareNumbers(100, 50);   // 1
+ * compareNumbers(50, 100);   // -1
+ * compareNumbers(100, 100);  // 0
+ */
+export function compareNumbers(a: number | string, b: number | string): -1 | 0 | 1 {
+    return mathCompare(safeToNumber(a, 0), safeToNumber(b, 0));
+}
+
+/**
+ * Get the minimum of multiple numeric values
+ * 
+ * @example
+ * minNumber(100, 50, 75);    // 50
+ */
+export function minNumber(...values: (number | string)[]): number {
+    return mathMin(...values.map(v => safeToNumber(v, 0)));
+}
+
+/**
+ * Get the maximum of multiple numeric values
+ * 
+ * @example
+ * maxNumber(100, 50, 75);    // 100
+ */
+export function maxNumber(...values: (number | string)[]): number {
+    return mathMax(...values.map(v => safeToNumber(v, 0)));
+}
+
+/**
+ * Round a number to the nearest integer using standard rounding
+ * 
+ * @example
+ * roundNumber(2.5);          // 3
+ * roundNumber(2.4);          // 2
+ */
+export function roundNumber(value: number | string, decimalPlaces: number = 0): number {
+    return mathRound(safeToNumber(value, 0), decimalPlaces);
+}
+
+/**
+ * Round a number up to the nearest integer
+ * 
+ * @example
+ * ceilNumber(2.1);           // 3
+ * ceilNumber(2.9);           // 3
+ */
+export function ceilNumber(value: number | string, decimalPlaces: number = 0): number {
+    return mathCeil(safeToNumber(value, 0), decimalPlaces);
+}
 
 // =============================================================================
 // TYPE DEFINITIONS
@@ -1549,7 +1694,8 @@ export function calculatePercentageOfTotal(
     const totalNum = safeToNumber(total, 0);
     // Use mathIsZero from math utils for numeric zero check
     if (mathIsZero(totalNum)) return 0;
-    return toNumber(preciseMultiply(preciseDivide(part, total), '100'));
+    const percentage = preciseMultiply(preciseDivide(part, total), '100');
+    return roundCurrencyNumber(percentage, currency);
 }
 
 /**

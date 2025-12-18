@@ -52,7 +52,7 @@
 		"node": ">=14.0.0"
 	},
 	"dependencies": {
-		"@sifxt/math-utils": "^2.0.0"
+		"@sifxt/math-utils": "^2.0.1"
 	},
 	"devDependencies": {
 		"@types/jest": "^29.5.12",
