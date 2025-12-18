@@ -1,0 +1,66 @@
+{
+	"name": "@sifxt/money-utils",
+	"version": "1.0.0",
+	"description": "A comprehensive TypeScript money utilities library with currency-aware operations, precise decimal arithmetic, and financial calculation helpers",
+	"main": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"module": "dist/index.js",
+	"files": [
+		"dist",
+		"README.md",
+		"LICENSE"
+	],
+	"scripts": {
+		"build": "tsc -p tsconfig.build.json",
+		"prepublishOnly": "npm run build",
+		"test": "jest",
+		"clean": "rm -rf dist"
+	},
+	"keywords": [
+		"money",
+		"currency",
+		"finance",
+		"financial",
+		"utils",
+		"utilities",
+		"typescript",
+		"decimal",
+		"precision",
+		"rounding",
+		"gst",
+		"tax",
+		"invoice",
+		"allocation",
+		"distribution",
+		"bigint",
+		"type-safe",
+		"bankers-rounding",
+		"forex",
+		"accounting"
+	],
+	"author": "Sifat Singh <sifatsingh7059@gmail.com>",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/sifXt/money-utils.git"
+	},
+	"bugs": {
+		"url": "https://github.com/sifXt/money-utils/issues"
+	},
+	"homepage": "https://github.com/sifXt/money-utils#readme",
+	"engines": {
+		"node": ">=14.0.0"
+	},
+	"dependencies": {
+		"@sifxt/math-utils": "^2.0.0"
+	},
+	"devDependencies": {
+		"@types/jest": "^29.5.12",
+		"jest": "^29.7.0",
+		"ts-jest": "^29.1.2",
+		"typescript": "^5.9.3"
+	},
+	"peerDependencies": {
+		"@sifxt/math-utils": ">=2.0.0"
+	}
+}
