@@ -483,6 +483,35 @@ export function parseMoney(formattedAmount: string): string {
 }
 
 // =============================================================================
+// CURRENCY INPUT VALIDATION AND PARSING
+// =============================================================================
+
+/**
+ * Regex used to validate in-progress currency input.
+ * Allows digits with a single optional decimal point.
+ */
+export const CURRENCY_INPUT_PATTERN = /^\d*\.?\d*$/;
+
+/**
+ * Parse a user-entered currency string using currency-aware rounding.
+ * Falls back to 0 when the value is empty or invalid.
+ */
+export function parseAndRoundCurrencyInput(value: string, currency: string = DEFAULT_CURRENCY_CODE): number {
+    if (!value || value === '.') {
+        return 0;
+    }
+    const rounded = roundForCurrency(value, currency);
+    return toNumber(rounded);
+}
+
+/**
+ * Lightweight guard to prevent invalid numeric characters while a user types.
+ */
+export function isValidCurrencyInput(value: string): boolean {
+    return CURRENCY_INPUT_PATTERN.test(value);
+}
+
+// =============================================================================
 // MONEY OBJECT OPERATIONS
 // =============================================================================
 

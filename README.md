@@ -71,14 +71,21 @@ const item = Money.calculateLineItem({
 - [API Reference](#api-reference)
   - [Basic Arithmetic](#basic-arithmetic)
   - [Comparison Operations](#comparison-operations)
+  - [Validation & Utility Functions](#validation--utility-functions)
   - [Rounding Operations](#rounding-operations)
   - [Percentage Calculations](#percentage-calculations)
   - [Money Object Operations](#money-object-operations)
+  - [Currency Money Operations](#currency-money-operations)
+  - [Numeric Money Operations](#numeric-money-operations)
   - [Currency Operations](#currency-operations)
   - [Tax Calculations](#tax-calculations)
   - [Invoice Line Items](#invoice-line-items)
   - [Allocation & Distribution](#allocation--distribution)
   - [Financial Helpers](#financial-helpers)
+  - [Ledger & Adjustment Functions](#ledger--adjustment-functions)
+  - [Precise Functions (Re-exports)](#precise-functions-re-exports)
+  - [Constants & Configuration](#constants--configuration)
+  - [Types & Interfaces](#types--interfaces)
 - [Rounding Modes](#rounding-modes)
 - [Supported Currencies](#supported-currencies)
 - [Architecture](#architecture)
@@ -116,12 +123,21 @@ sum('100', '50', '75', '25');   // '250'
 average('100', '50', '75', '25'); // '62.5'
 min('100', '50', '75', '25');   // '25'
 max('100', '50', '75', '25');   // '100'
+
+// Absolute value and negation
+abs('-123.45');                 // '123.45'
+negate('100');                  // '-100'
+negate('-50');                  // '50'
 ```
 
 ### Comparison Operations
 
 ```typescript
-import { compare, equals, greaterThan, lessThan } from '@sifxt/money-utils';
+import { 
+  compare, equals, greaterThan, greaterThanOrEqual,
+  lessThan, lessThanOrEqual, isZero, isPositive, isNegative,
+  inRange, clamp
+} from '@sifxt/money-utils';
 
 compare('100', '50');           // 1 (first is greater)
 compare('50', '100');           // -1 (first is smaller)
@@ -135,6 +151,55 @@ greaterThan('150', '100');      // true
 greaterThanOrEqual('100', '100'); // true
 lessThan('50', '100');          // true
 lessThanOrEqual('100', '100');  // true
+
+// Zero and sign checks
+isZero('0');                    // true
+isZero('0.00');                 // true
+isPositive('100');              // true
+isNegative('-50');              // true
+
+// Range operations
+inRange('50', '0', '100');      // true (50 is between 0 and 100)
+inRange('150', '0', '100');     // false
+clamp('150', '0', '100');       // '100' (clamps to max)
+clamp('-50', '0', '100');       // '0' (clamps to min)
+clamp('50', '0', '100');        // '50' (within range)
+```
+
+### Validation & Utility Functions
+
+```typescript
+import { 
+  isValidNumber, isPositiveNumber, isNegativeNumber, isIntegerAmount,
+  absoluteValue, signOf, compareNumbers, minNumber, maxNumber,
+  roundNumber, ceilNumber
+} from '@sifxt/money-utils';
+
+// Validation (returns boolean)
+isValidNumber(123);             // true
+isValidNumber('123.45');        // true
+isValidNumber('abc');           // false
+isValidNumber(NaN);             // false
+isValidNumber(Infinity);        // false
+
+isPositiveNumber(100);          // true
+isPositiveNumber(-50);          // false
+isNegativeNumber(-50);          // true
+isIntegerAmount(100);           // true
+isIntegerAmount(100.5);         // false
+
+// Utility functions (return number)
+absoluteValue(-123.45);         // 123.45
+signOf(100);                    // 1
+signOf(-50);                    // -1
+signOf(0);                      // 0
+
+compareNumbers('100', '50');    // 1
+minNumber(100, 50, 75);         // 50
+maxNumber(100, 50, 75);         // 100
+
+roundNumber(123.456, 2);        // 123.46
+ceilNumber(123.001, 2);         // 123.01
 ```
 
 ### Rounding Operations
@@ -171,6 +236,10 @@ roundWithAdjustment('123.456', 2);
 //   roundingMode: 'ROUND_HALF_EVEN',
 //   hasAdjustment: true
 // }
+
+// Currency-aware rounding with adjustment
+roundForCurrencyWithAdjustment('99.999', 'INR');
+// Returns RoundingAdjustment with currency-specific decimal places
 ```
 
 ### Percentage Calculations
@@ -193,6 +262,9 @@ subtractPercentage('200', '25'); // 150
 // What percentage is X of Y?
 percentOfNumber(250, 1000);     // 25 (250 is 25% of 1000)
 percentOfNumber('50', '200');   // 25
+
+// Precise percentage (string-based)
+percentageOf('250', '1000');    // '25' (string result)
 ```
 
 ### Money Object Operations
@@ -221,9 +293,64 @@ multiplyMoney(amount1, 2.5);
 roundMoney(createMoney('1234.567', 'INR'), 2);
 // { amount: '1234.57', currency: 'INR' }
 
+// Divide Money
+divideMoney(createMoney('1000', 'INR'), 4);
+// { amount: '250', currency: 'INR' }
+
 // Currency mismatch throws error
 const usd = createMoney('100', 'USD');
 addMoney(amount1, usd); // Error: Cannot add different currencies
+```
+
+### Currency Money Operations
+
+```typescript
+import { 
+  createCurrencyMoney, addCurrencyMoney, 
+  roundMoneyToCurrency, roundMoneyWithAdjustment 
+} from '@sifxt/money-utils';
+
+// Create CurrencyMoney (includes decimal places)
+const currencyMoney = createCurrencyMoney('1234.567', 'INR');
+// { amount: '1234.57', currency: 'INR', decimalPlaces: 2 }
+
+// Add CurrencyMoney objects
+const sum = addCurrencyMoney(currencyMoney, createCurrencyMoney('500', 'INR'));
+// { amount: '1734.57', currency: 'INR', decimalPlaces: 2 }
+
+// Round money to currency-specific decimals
+roundMoneyToCurrency(createMoney('123.456', 'INR'));
+// { amount: '123.46', currency: 'INR' }
+
+// Round with adjustment tracking
+roundMoneyWithAdjustment(createMoney('123.456', 'INR'), 2);
+// Returns Money object with RoundingAdjustment
+```
+
+### Numeric Money Operations
+
+```typescript
+import { 
+  addMoneyNumbers, subtractMoneyNumbers, multiplyMoneyNumbers,
+  divideMoneyNumbers, roundCurrencyNumber, percentageNumber,
+  subtractMoneyList
+} from '@sifxt/money-utils';
+
+// These return numbers (not strings) for currency-aware calculations
+addMoneyNumbers(100.5, 200.75, 'INR');      // 301.25
+subtractMoneyNumbers(500, 123.45, 'INR');   // 376.55
+multiplyMoneyNumbers(100, 2.5, 'INR');      // 250
+divideMoneyNumbers(1000, 3, 'INR');         // 333.33
+
+// Round to currency decimals (returns number)
+roundCurrencyNumber(123.456, 'INR');        // 123.46
+roundCurrencyNumber(123.456, 'JPY');        // 123
+
+// Calculate percentage (returns number)
+percentageNumber(1000, 18, 'INR');          // 180
+
+// Subtract list from initial value
+subtractMoneyList('1000', ['100', '200', '50'], 'INR');  // '650'
 ```
 
 ### Currency Operations
@@ -236,6 +363,9 @@ import {
   isValidCurrency,
   formatMoney,
   parseMoney,
+  parseAndRoundCurrencyInput,
+  isValidCurrencyInput,
+  CURRENCY_INPUT_PATTERN,
   toSmallestUnit,
   fromSmallestUnit
 } from '@sifxt/money-utils';
@@ -266,6 +396,23 @@ formatMoney(1234.56, 'USD', 'en-US');    // '$1,234.56'
 // Parse formatted money
 parseMoney('₹1,234.56');          // '1234.56'
 parseMoney('$1,000.00');          // '1000.00'
+
+// Parse and round user-entered currency input
+parseAndRoundCurrencyInput('123.456', 'INR');  // 123.46 (rounded to 2 decimals)
+parseAndRoundCurrencyInput('99.999', 'JPY');   // 100 (rounded to 0 decimals)
+parseAndRoundCurrencyInput('', 'INR');          // 0 (empty string)
+parseAndRoundCurrencyInput('.', 'INR');         // 0 (just decimal point)
+
+// Validate currency input while user types
+isValidCurrencyInput('123');        // true
+isValidCurrencyInput('123.45');     // true
+isValidCurrencyInput('123.45.67'); // false (multiple decimal points)
+isValidCurrencyInput('abc');        // false (non-numeric)
+isValidCurrencyInput('12.3.4');    // false
+
+// Currency input pattern (regex)
+CURRENCY_INPUT_PATTERN.test('123.45');  // true
+CURRENCY_INPUT_PATTERN.test('abc');     // false
 
 // Convert to/from smallest units (e.g., paise/cents)
 toSmallestUnit('123.45', 2);      // '12345' (rupees to paise)
@@ -437,6 +584,153 @@ applyPriceMultiplier('1000', 0.9);  // 900 (10% discount)
 // Calculate discount amount
 calculateDiscountAmount('1000', { value: 10 });    // 100 (10%)
 calculateDiscountAmount('1000', { amount: 50 });   // 50 (fixed)
+
+// Calculate percentage of total
+calculatePercentageOfTotal('250', '1000', 'INR');  // '25'
+```
+
+### Ledger & Adjustment Functions
+
+```typescript
+import { 
+  calculateLedgerTotal, calculateTotalAdjustment 
+} from '@sifxt/money-utils';
+
+// Calculate ledger totals (debits and credits)
+const ledger = calculateLedgerTotal([
+  { amount: '1000', type: 'debit' },
+  { amount: '500', type: 'credit' },
+  { amount: '200', type: 'debit' }
+], 'INR');
+// {
+//   totalDebit: '1200',
+//   totalCredit: '500',
+//   balance: '700',
+//   balanceType: 'debit'
+// }
+
+// Calculate total adjustment from rounding
+calculateTotalAdjustment([
+  { adjustment: '0.01' },
+  { adjustment: '-0.02' },
+  { adjustment: '0.005' }
+], 'INR');
+// '-0.005' (net adjustment)
+```
+
+### Precise Functions (Re-exports)
+
+These are re-exported from `@sifxt/math-utils` for direct access:
+
+```typescript
+import { 
+  // Precise arithmetic (string-based, BigInt internally)
+  preciseAdd, preciseSubtract, preciseMultiply, preciseDivide,
+  preciseRound, preciseAbs, preciseNegate,
+  preciseMin, preciseMax, preciseSum, preciseAverage,
+  
+  // Precise comparisons
+  preciseCompare, preciseEquals, preciseGreaterThan, preciseGreaterThanOrEqual,
+  preciseLessThan, preciseLessThanOrEqual, preciseEqualsWithinThreshold,
+  
+  // Precise checks
+  preciseIsZero, preciseIsPositive, preciseIsNegative, preciseInRange, preciseClamp,
+  
+  // Precise percentages
+  precisePercentage, preciseAddPercentage, preciseSubtractPercentage, precisePercentageOf,
+  
+  // Precise distribution
+  preciseDistribute, preciseAllocate,
+  
+  // Parsing utilities
+  parseToString, isValidDecimalFormat, safeParsePreciseString,
+  
+  // Precision config
+  PrecisionRoundingMode
+} from '@sifxt/money-utils';
+
+// All precise* functions work with strings for maximum precision
+preciseAdd('0.1', '0.2');           // '0.3'
+preciseRound('2.5', 0);             // '2' (Banker's rounding)
+precisePercentage('1000', '18');    // '180'
+preciseDistribute('100', 3);        // ['33.34', '33.33', '33.33']
+```
+
+### Constants & Configuration
+
+```typescript
+import { 
+  // Default values
+  DEFAULT_CURRENCY_CODE,        // 'INR'
+  DEFAULT_ROUNDING_MODE,        // RoundingMode.ROUND_HALF_EVEN
+  DEFAULT_DECIMAL_PLACES,       // 2
+  DEFAULT_ROUNDING_CONFIG,      // { decimalPlaces: 2, mode: ROUND_HALF_EVEN }
+  
+  // Precision thresholds
+  MATH_PRECISION,               // From @sifxt/math-utils
+  MONEY_PRECISION,              // Money-specific thresholds
+  
+  // Currency data
+  CURRENCY_CODES,               // { INR: 'INR', USD: 'USD', ... }
+  CURRENCIES,                   // Full currency config map
+  CURRENCY_SYMBOLS,             // { INR: '₹', USD: '$', ... }
+  CURRENCY_DECIMAL_PLACES,      // { INR: 2, JPY: 0, KWD: 3, ... }
+  CURRENCY_LOCALES,             // { INR: 'en-IN', USD: 'en-US', ... }
+  CURRENCY_SMALLEST_UNITS,      // { INR: 'paise', USD: 'cents', ... }
+  
+  // Tax rates (Indian GST)
+  TAX_RATES,                    // { GST_5: 5, GST_12: 12, GST_18: 18, ... }
+  
+  // Rounding modes enum
+  RoundingMode
+} from '@sifxt/money-utils';
+
+// Example usage
+console.log(CURRENCY_CODES.INR);           // 'INR'
+console.log(CURRENCY_SYMBOLS.EUR);         // '€'
+console.log(CURRENCY_DECIMAL_PLACES.JPY);  // 0
+console.log(TAX_RATES.GST_18);             // 18
+```
+
+### Types & Interfaces
+
+```typescript
+import type { 
+  // Core money types
+  Money,                // { amount: string, currency: string }
+  CurrencyMoney,        // Money & { decimalPlaces: number }
+  
+  // Currency types
+  CurrencyCode,         // 'INR' | 'USD' | 'EUR' | ...
+  CurrencyConfig,       // Full currency configuration
+  
+  // Rounding types
+  RoundingAdjustment,   // { original, rounded, adjustment, ... }
+  RoundingConfig        // { decimalPlaces, mode }
+} from '@sifxt/money-utils';
+
+// Money interface
+const amount: Money = {
+  amount: '1000.50',
+  currency: 'INR'
+};
+
+// CurrencyMoney extends Money
+const currencyAmount: CurrencyMoney = {
+  amount: '1000.50',
+  currency: 'INR',
+  decimalPlaces: 2
+};
+
+// RoundingAdjustment for auditing
+const adjustment: RoundingAdjustment = {
+  original: '123.456',
+  rounded: '123.46',
+  adjustment: '0.004',
+  decimalPlaces: 2,
+  roundingMode: 'ROUND_HALF_EVEN',
+  hasAdjustment: true
+};
 ```
 
 ## Rounding Modes
