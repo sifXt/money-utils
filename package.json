@@ -1,6 +1,6 @@
 {
 	"name": "@sifxt/money-utils",
-	"version": "1.0.1",
+	"version": "1.0.2",
 	"description": "A comprehensive TypeScript money utilities library with currency-aware operations, precise decimal arithmetic, and financial calculation helpers",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
@@ -52,7 +52,7 @@
 		"node": ">=14.0.0"
 	},
 	"dependencies": {
-		"@sifxt/math-utils": "^2.0.1"
+		"@sifxt/math-utils": "^2.0.2"
 	},
 	"devDependencies": {
 		"@types/jest": "^29.5.12",
@@ -61,6 +61,6 @@
 		"typescript": "^5.9.3"
 	},
 	"peerDependencies": {
-		"@sifxt/math-utils": ">=2.0.0"
+		"@sifxt/math-utils": ">=2.0.2"
 	}
 }
